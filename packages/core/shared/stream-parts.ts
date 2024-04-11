@@ -342,6 +342,15 @@ export const parseStreamPart = (line: string): StreamPartType => {
 
   const prefix = line.slice(0, firstSeparatorIndex);
 
+  // This is necessary for streams not from Vercel's AI library.
+  if (prefix === 'data') {
+    const _textValue = line.slice(firstSeparatorIndex + 1)
+    const textValue = _textValue.trim();
+    const jsonValue = JSON.parse(textValue);
+
+    return textStreamPart.parse(jsonValue['choices'][0]['delta']['content']);
+  }
+
   if (!validCodes.includes(prefix as keyof typeof streamPartsByCode)) {
     throw new Error(`Failed to parse stream string. Invalid code ${prefix}.`);
   }
